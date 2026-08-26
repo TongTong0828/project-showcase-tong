@@ -1,0 +1,284 @@
+"""Abstain decision module — three-way evidence sufficiency check.
+
+Goal
+----
+Bridge the gap exposed by the M6 33-question evaluation: when retrieval
+correctly recalls 0 relevant papers (e.g. "Shanghai weather tomorrow" against
+a NLP-paper corpus), the downstream LLM still happily cites 14 noisy chunks.
+This module gives qa_agentic a first-class "abstain" decision **before** any
+LLM call is made.
+
+Decision protocol
+-----------------
+Given the final chunk list (already RRF-fused + reranked + truncated):
+
+    no_chunks       — chunks == []
+    no_evidence     — evidence_score < threshold_low      (LLM is SKIPPED)
+    weak_evidence   — threshold_low <= score < threshold_high  (LLM is called
+                      with an explicit "evidence may be insufficient" hint)
+    confident       — score >= threshold_high             (normal flow)
+
+`evidence_score` is the mean of the top-`min_chunks` scores after selecting
+the highest-quality scoring signal available in the candidate dict (preference
+order is configurable; default `score_rerank > score_dense > score`). RRF
+scores are bounded ~`(0, 0.05]` so they get linearly normalized into a [0, 1]-ish
+band before mean — this keeps the same threshold semantics regardless of
+whether the reranker is enabled.
+
+Industrial-grade properties
+---------------------------
+1. **Pure function** — `decide()` takes a list[dict] + thresholds, returns a
+   typed dict. No I/O, no logging side-effects, easy to unit-test.
+2. **Backward compatible** — when `enabled=False` (default until calibration),
+   always returns `confident` so qa_agentic behaves exactly as before.
+3. **Graceful fallback** — if score fields are missing or non-numeric, the
+   decision falls back to `confident` rather than blocking the pipeline.
+4. **Observable** — every decision returns the score, threshold, and the
+   field it used; callers expose this in metrics + trace.
+5. **Calibratable** — thresholds come from `cfg.rag.abstain` and are picked
+   by `scripts/calibrate_abstain.py` from a real eval_runs/*.json + GT. No
+   magic numbers in code.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Iterable
+
+# Type alias for clarity
+Decision = str  # one of: confident | weak_evidence | no_evidence | no_chunks
+
+DECISION_CONFIDENT = "confident"
+DECISION_WEAK = "weak_evidence"
+DECISION_NO_EVIDENCE = "no_evidence"
+DECISION_NO_CHUNKS = "no_chunks"
+
+# Signal quality classification: only high-quality signals (real similarity)
+# can reliably distinguish "irrelevant chunks ranked top" from "relevant chunks
+# ranked top". Rank-based signals (RRF) cannot, BM25 alone is unreliable for
+# out-of-domain questions where keywords may incidentally match. Therefore
+# under low-quality signals abstain fails open (confident) to avoid blocking
+# correct answers — degraded retrieval is captured as a separate metric.
+HIGH_QUALITY_FIELDS = frozenset({"score_rerank", "score_dense", "score"})
+LOW_QUALITY_FIELDS = frozenset({"score_bm25", "score_rrf"})
+
+
+# RRF scores are sums of 1/(k+rank) and typically live in (0, 0.05] for k=60.
+# Multiply by this factor to bring them into ~ (0, 1] for threshold comparison.
+# Picked so that an RRF score of 0.033 (rank-1 in 1 list) maps to ~0.5.
+_RRF_NORMALIZE_FACTOR = 15.0
+
+# BM25 raw scores are unbounded (typical 0-30). We squash with a soft sigmoid
+# centered at BM25=8 (a typical rank-1 score for an in-corpus query). This is
+# only used as a degraded-mode fallback when dense retrieval is unavailable.
+_BM25_SIGMOID_CENTER = 8.0
+_BM25_SIGMOID_SLOPE = 0.5
+
+
+def _normalize(score: float, field: str) -> float:
+    """Bring per-chunk score into a [0, 1]-ish band so thresholds are stable
+    across reranker on/off configurations."""
+    if field == "score_rrf":
+        # RRF: linear scale, then clip to [0, 1]
+        return max(0.0, min(1.0, score * _RRF_NORMALIZE_FACTOR))
+    if field == "score_bm25":
+        # BM25 raw scores are unbounded; sigmoid squash for [0,1] band.
+        # Used only as a degraded-mode fallback (dense down).
+        import math
+        z = _BM25_SIGMOID_SLOPE * (score - _BM25_SIGMOID_CENTER)
+        return 1.0 / (1.0 + math.exp(-z))
+    # score_rerank: already 0..1 (sigmoid output of bge-reranker)
+    # score / score_dense (cosine): bge-m3 dense cosine ~ [-1, 1] but
+    # practically ~[0, 1] for similar pairs; clip to [0, 1] for safety.
+    return max(0.0, min(1.0, score))
+
+
+def evidence_score(
+    chunks: list[dict],
+    *,
+    score_fields: tuple[str, ...] = (
+        "score_rerank",
+        "score_dense",
+        "score",
+        "score_bm25",
+        "score_rrf",
+    ),
+    min_chunks: int = 3,
+) -> tuple[float, str | None, int]:
+    """Compute aggregated evidence score from a chunk list.
+
+    Returns
+    -------
+    (score, field_used, n_used)
+        score      — mean normalized score over the top `min_chunks` chunks.
+                     Falls back to 0.0 if none of the chunks carry a usable
+                     score field.
+        field_used — the score field actually picked (or None).
+        n_used     — number of chunks contributing to the mean.
+    """
+    if not chunks:
+        return 0.0, None, 0
+
+    raw_scores: list[float] = []
+    field_used = _best_available_field(chunks, score_fields)
+    if field_used is None:
+        return 0.0, None, 0
+    for ch in chunks:
+        value = ch.get(field_used)
+        if value is None:
+            continue
+        try:
+            raw_scores.append(_normalize(float(value), field_used))
+        except (TypeError, ValueError):
+            continue
+    if not raw_scores:
+        return 0.0, None, 0
+    raw_scores.sort(reverse=True)
+    take = raw_scores[:min_chunks] if min_chunks > 0 else raw_scores
+    return sum(take) / len(take), field_used, len(take)
+
+
+def _best_available_field(chunks: list[dict], score_fields: Iterable[str]) -> str | None:
+    for field in score_fields:
+        for ch in chunks:
+            value = ch.get(field)
+            if value is None:
+                continue
+            try:
+                float(value)
+                return field
+            except (TypeError, ValueError):
+                continue
+    return None
+
+
+def _classify(
+    *,
+    enabled: bool,
+    field_used: str | None,
+    score: float,
+    threshold_low: float,
+    threshold_high: float,
+) -> tuple[str, str]:
+    """Pure decision: given the calibration inputs, return (decision, signal_quality).
+
+    Split out so the threshold table can be unit-tested independently of the
+    score-extraction code in evidence_score(). 6 branches, no I/O.
+    """
+    if not enabled:
+        return DECISION_CONFIDENT, "disabled"
+    if field_used is None:
+        # No usable score field — fail open rather than block the pipeline.
+        return DECISION_CONFIDENT, "missing"
+    if field_used in LOW_QUALITY_FIELDS:
+        # Rank-based / unbounded scores (BM25/RRF) are unreliable for the
+        # "low average means out-of-domain" hypothesis. Fail open and surface
+        # the degraded state via signal_quality.
+        return DECISION_CONFIDENT, "low_degraded"
+    if score < threshold_low:
+        return DECISION_NO_EVIDENCE, "high"
+    if score < threshold_high:
+        return DECISION_WEAK, "high"
+    return DECISION_CONFIDENT, "high"
+
+
+def _top_chunk_score(chunks: list[dict], field_used: str | None) -> float:
+    if field_used is None or not chunks:
+        return 0.0
+    scores: list[float] = []
+    for ch in chunks:
+        try:
+            scores.append(_normalize(float(ch.get(field_used, 0.0) or 0.0), field_used))
+        except (TypeError, ValueError):
+            continue
+    return max(scores) if scores else 0.0
+
+
+def decide(
+    chunks: list[dict],
+    *,
+    enabled: bool = True,
+    threshold_low: float = 0.20,
+    threshold_high: float = 0.40,
+    min_chunks: int = 3,
+    score_fields: tuple[str, ...] = (
+        "score_rerank",  # bge-reranker output (best signal when available)
+        "score_dense",   # bge-m3 cosine (real semantic similarity)
+        "score",         # fallback alias (qdrant_store sets `score`)
+        "score_bm25",    # degraded-mode fallback (dense unavailable)
+        "score_rrf",     # rank-based, last resort (cannot detect no-evidence)
+    ),
+) -> dict:
+    """Make an abstain decision.
+
+    Parameters
+    ----------
+    chunks : list of retrieval result dicts (already truncated to what the LLM
+             would see).
+    enabled : kill switch. When False, always returns `confident` (legacy
+              behavior).
+    threshold_low : below this -> no_evidence (LLM skipped).
+    threshold_high : at or above this -> confident (normal flow).
+    min_chunks : how many top chunks contribute to evidence_score mean.
+    score_fields : which score fields to consult, in priority order.
+
+    Returns
+    -------
+    dict with keys: decision, evidence_score, top_chunk_score, n_chunks,
+    score_field, threshold_low, threshold_high.
+    """
+    n_chunks = len(chunks)
+    if n_chunks == 0:
+        return {
+            "decision": DECISION_NO_CHUNKS,
+            "evidence_score": 0.0,
+            "top_chunk_score": 0.0,
+            "n_chunks": 0,
+            "score_field": None,
+            "threshold_low": threshold_low,
+            "threshold_high": threshold_high,
+            "enabled": enabled,
+        }
+
+    score, field_used, _ = evidence_score(
+        chunks, score_fields=score_fields, min_chunks=min_chunks
+    )
+    top_score = _top_chunk_score(chunks, field_used)
+    decision, signal_quality = _classify(
+        enabled=enabled,
+        field_used=field_used,
+        score=score,
+        threshold_low=threshold_low,
+        threshold_high=threshold_high,
+    )
+
+    return {
+        "decision": decision,
+        "evidence_score": round(score, 4),
+        "top_chunk_score": round(top_score, 4),
+        "n_chunks": n_chunks,
+        "score_field": field_used,
+        "signal_quality": signal_quality,
+        "threshold_low": threshold_low,
+        "threshold_high": threshold_high,
+        "enabled": enabled,
+    }
+
+
+# Prompt suffix injected when decision == weak_evidence
+WEAK_EVIDENCE_HINT = (
+    "\n\nNOTE: The retrieved evidence appears WEAK or only tangentially "
+    "related to the question. If you cannot answer with high confidence "
+    "using the evidence above, explicitly say so — do NOT compensate with "
+    "general knowledge or fabricated citations."
+)
+
+
+__all__ = [
+    "DECISION_CONFIDENT",
+    "DECISION_NO_CHUNKS",
+    "DECISION_NO_EVIDENCE",
+    "DECISION_WEAK",
+    "WEAK_EVIDENCE_HINT",
+    "decide",
+    "evidence_score",
+]

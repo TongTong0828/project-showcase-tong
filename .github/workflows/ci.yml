@@ -1,0 +1,62 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install (CI minimal set)
+        run: |
+          python -m pip install --upgrade pip
+          # Pinned ruff for reproducible lint output.
+          # Runtime deps grouped by what each test layer actually imports:
+          #   pydantic / pydantic-settings — config, schemas
+          #   pyyaml / httpx                — config loader, http client
+          #   sqlmodel                      — store / wiki / tools.wiki_lookup
+          #   qdrant-client                 — store.qdrant_store + chaos test
+          #   python-pptx / python-docx     — deliver.{pptx,docx}
+          # Heavy deps (FlagEmbedding, sentence-transformers, magic-pdf,
+          # torch, etc.) are NOT required for these tests.
+          pip install \
+            "ruff==0.15.14" \
+            pydantic pydantic-settings pyyaml httpx \
+            sqlmodel qdrant-client \
+            python-pptx python-docx \
+            pytest
+
+      - name: Ruff check (core rules)
+        run: ruff check --select E,F,W,I --ignore E501 src tests
+
+      - name: Pytest (pure logic)
+        env:
+          PYTHONPATH: src:tests
+        # Skip:
+        #   tests/eval/                       — needs the eval dataset
+        #   test_gateway_paper_rag / middleware — load files from sibling
+        #                                       deer-flow checkout
+        run: |
+          pytest -q \
+            --ignore=tests/eval \
+            --ignore=tests/test_gateway_paper_rag.py \
+            --ignore=tests/test_middleware.py \
+            --ignore=tests/test_langgraph_middleware.py
+
+      - name: Smoke import check
+        env:
+          PYTHONPATH: src
+        run: python scripts/_run_smoke.py
