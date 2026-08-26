@@ -42,7 +42,7 @@ dependencies = [
 # Heavy ML deps for embedding + reranking. ~3GB of model weights at runtime.
 embed = [
     "FlagEmbedding>=1.2.10",
-    "transformers<5",
+    "transformers<6",
 ]
 # arXiv / OpenAlex / Semantic Scholar ingest sources.
 ingest = [
@@ -77,7 +77,7 @@ vision-local = [
     "accelerate>=0.30",
     "pillow>=10",
     "torch>=2.2",
-    "transformers<5",
+    "transformers<6",
 ]
 # Development + CI tooling.
 dev = [
