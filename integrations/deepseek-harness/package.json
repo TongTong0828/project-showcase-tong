@@ -1,0 +1,43 @@
+{
+  "name": "@paper-rag/deepseek-harness-integration",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "description": "Paper RAG DeepSeek Harness compatibility spike integration.",
+  "scripts": {
+    "bootstrap": "node scripts/bootstrap.mjs",
+    "sync-preset": "node scripts/sync-preset.mjs",
+    "start": "node scripts/start.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "dsh:dump-config": "node scripts/doctor.mjs --dump-config",
+    "smoke": "node scripts/smoke.mjs",
+    "g0:compat": "node scripts/g0-compat.mjs"
+  },
+  "dependencies": {
+    "@deepseek-ai/cordis": "4.0.1",
+    "@deepseek-ai/dsh": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-agent-presets": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-command-compact": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-compaction-basic": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-credentials": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-llm": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-mcp-client": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-session": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-tool-ask-user": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-tool-call-timeout-policy": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-tool-skill": "0.1.0-rc.6",
+    "@deepseek-ai/dsh-tools": "0.1.0-rc.6",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.0",
+    "typescript": "5.9.3",
+    "vitest": "4.0.16"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "retrieval_only": {
+    "positive_paper_recall@k": {"min": 0.95},
+    "positive_chunk_recall@k": {"min": 0.75},
+    "positive_paper_mrr": {"min": 0.85},
+    "fpr@k": {"max": 0.05},
+    "errors": {"max": 0}
+  },
+  "qa_no_judge": {
+    "positive_paper_recall@k": {"min": 0.95},
+    "positive_chunk_recall@k": {"min": 0.75},
+    "cite_existence": {"min": 0.98},
+    "cite_precision": {"min": 0.75},
+    "must_contain": {"min": 0.85},
+    "no_answer_success_rate": {"min": 0.9},
+    "no_answer_abstain_rate": {"min": 0.9},
+    "violations": {"max": 0},
+    "errors": {"max": 0}
+  },
+  "judge": {
+    "judge_faithful": {"min": 4.2},
+    "judge_complete": {"min": 4.0},
+    "judge_concise": {"min": 4.0},
+    "errors": {"max": 0}
+  }
+}

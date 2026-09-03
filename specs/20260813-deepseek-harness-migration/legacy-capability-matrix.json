@@ -1,0 +1,471 @@
+{
+  "schema_version": 1,
+  "feature": "20260813-deepseek-harness-migration",
+  "source_files": [
+    "tests/test_gateway_paper_rag.py",
+    "tests/test_middleware.py",
+    "tests/test_langgraph_middleware.py"
+  ],
+  "allowed_classifications": [
+    "host-specific-delete",
+    "capability-replaced-by-broker-or-mcp",
+    "still-required-and-moved"
+  ],
+  "entries": [
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_routes_registered",
+      "classification": "host-specific-delete",
+      "replacement": "DSH-G0-003",
+      "rationale": "DeerFlow FastAPI router registration disappears when Paper Research is mounted as a DSH preset; preset discovery and exact catalog cover the new host boundary."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_metrics_endpoint_bypasses_auth",
+      "classification": "host-specific-delete",
+      "replacement": "FR-004, FR-052, DSH-G0-002",
+      "rationale": "Gateway HTTP metrics auth bypass is DeerFlow-specific; the local DSH host is loopback-only and uses local diagnostic reports instead of a public gateway route."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_openapi_endpoint_bypasses_auth",
+      "classification": "host-specific-delete",
+      "replacement": "DSH-G0-003, DSH-G0-004",
+      "rationale": "OpenAPI route behavior belongs to the old FastAPI host; DSH tool schema discovery and Broker/MCP handshake replace the discoverability requirement."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_paper_rag_endpoints_require_auth",
+      "classification": "host-specific-delete",
+      "replacement": "FR-004, FR-044, MCP-005",
+      "rationale": "BetterAuth-backed multi-user HTTP authorization is out of scope for the local single-actor DSH product; fixed actor validation replaces model/user authority."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_paper_rag_papers_dev_mode",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-RO-002",
+      "rationale": "Visible paper listing moves from Gateway dev route to framework-neutral paper_list service exposed through MCP."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_runtime_status_exposes_wiki_runtime_state",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-RO-001",
+      "rationale": "Runtime status moves from Gateway response model to framework-neutral paper_status service and MCP result envelope."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_runtime_status_reports_wiki_disabled",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-RO-001",
+      "rationale": "Wiki disabled/degraded state remains required but is reported through paper_status instead of the DeerFlow router."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_runtime_status_reports_wiki_unavailable_without_llm",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-RO-001, MCP-004",
+      "rationale": "LLM unavailable/degraded status remains required and is validated through MCP status/error mapping."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_qa_sync_forwards_user_conversation_and_resolved_question",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SESSION-001, SESSION-003, AGENT-003",
+      "rationale": "Gateway forwarding of conversation identity is replaced by Broker hidden metadata and authoritative outer resolved_question."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_qa_stream_forwards_user_conversation_and_resolved_question",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SESSION-001, SESSION-003, AGENT-003",
+      "rationale": "SSE-specific forwarding disappears; the same identity and resolved-question contract is tested at the Broker/MCP boundary."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_knowledge_builds_dev_mode_returns_stage_status",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-RO-001, WRITE-002, WRITE-007",
+      "rationale": "Knowledge build route status becomes chat-first tool/status behavior rather than a DeerFlow dashboard route."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_knowledge_builds_reports_wiki_disabled_when_no_entry",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-RO-001, MCP-RO-008",
+      "rationale": "Wiki disabled/no-entry state is preserved through paper_status and wiki_lookup contracts."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_knowledge_builds_reports_wiki_unavailable_without_llm",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-RO-001, MCP-004",
+      "rationale": "Wiki unavailable without LLM remains a structured degraded/error condition in MCP."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_touch_paper_access_extracts_unique_ids",
+      "classification": "still-required-and-moved",
+      "replacement": "PRO-001, PRO-002, PRO-004",
+      "rationale": "Paper access tracking still feeds proactive behavior, but the trigger moves out of Gateway request handling into Paper RAG services/tools."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_touch_paper_access_noop_on_missing_inputs",
+      "classification": "still-required-and-moved",
+      "replacement": "PRO-001, PRO-002, PRO-004",
+      "rationale": "No-op behavior for missing paper ids remains required in the service layer used by proactive tools."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_proactive_endpoints_require_auth",
+      "classification": "host-specific-delete",
+      "replacement": "MCP-005, PRO-001, PRO-002",
+      "rationale": "HTTP auth enforcement is DeerFlow-specific; DSH uses a fixed local actor and chat-first proactive tools."
+    },
+    {
+      "file": "tests/test_gateway_paper_rag.py",
+      "test_name": "test_proactive_user_isolation_in_dev_mode",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-005, PRO-001, PRO-002",
+      "rationale": "Proactive ownership remains actor-scoped, but the migration explicitly preserves only one fixed local actor and shared corpus semantics."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_request_id_generates_when_absent",
+      "classification": "host-specific-delete",
+      "replacement": "FR-053",
+      "rationale": "Gateway request-id middleware is old-host HTTP behavior; new correlation uses DSH session id, tool call id, MCP tool name, and Paper RAG trace_id."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_request_id_propagates_existing",
+      "classification": "host-specific-delete",
+      "replacement": "FR-053",
+      "rationale": "Incoming HTTP request-id propagation is not part of local DSH product behavior."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_request_id_truncates_oversize",
+      "classification": "host-specific-delete",
+      "replacement": "FR-053, SEC-004",
+      "rationale": "Oversized gateway request header handling is deleted with the HTTP host; bounded tool/session metadata remains covered elsewhere."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_access_log_emits_json_line",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, FR-053",
+      "rationale": "Structured observability remains required, but moves from Gateway access logs to DSH/Broker/MCP local reports and trace correlation."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_access_log_skips_health",
+      "classification": "host-specific-delete",
+      "replacement": "FR-052",
+      "rationale": "Gateway health route logging policy is DeerFlow-specific and has no DSH equivalent."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_prometheus_counter_incremented",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-050, FR-053",
+      "rationale": "Metrics remain required as diagnostic evidence, but not through the DeerFlow Gateway Prometheus middleware."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_body_size_limit_rejects_large",
+      "classification": "host-specific-delete",
+      "replacement": "SEC-004, ART-003",
+      "rationale": "Gateway body-size middleware is deleted; oversized tool results and artifact session bloat are covered at Broker/MCP boundaries."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_body_size_limit_allows_small",
+      "classification": "host-specific-delete",
+      "replacement": "SEC-004, ART-003",
+      "rationale": "Gateway request body acceptance is old HTTP host behavior."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_timeout_returns_504",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "DSH-G0-008, MCP-004",
+      "rationale": "Gateway 504 timeout is replaced by DSH timeout policy plus MCP TIMEOUT/CANCELLED result semantics."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_timeout_skips_sse_paths",
+      "classification": "host-specific-delete",
+      "replacement": "DSH-G0-008",
+      "rationale": "SSE path exception is DeerFlow Gateway-specific; DSH native tool timeout policy covers the new execution path."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_rate_limit_burst_429",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "Multi-user HTTP rate limiting is outside the local single-user DSH product scope."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_rate_limit_recovers_after_window",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "Rate-limit window behavior is DeerFlow Gateway-specific."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_extract_session_token_default_cookie",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "BetterAuth cookie parsing is removed with the DeerFlow Gateway host."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_extract_session_token_secure_prefix",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "BetterAuth secure cookie parsing is removed with the old host."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_extract_session_token_fallback_to_full",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "BetterAuth token fallback logic is no longer a product boundary."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_auth_lru_eviction_o1",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "Gateway auth cache behavior is deleted with BetterAuth integration."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_rate_limit_redis_backend_failover_to_memory",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "Redis-backed multi-replica HTTP rate limiting is not part of the local DSH target."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_rate_limit_redis_backend_uses_check",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "Redis rate-limit backend is old-host infrastructure."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_rate_limit_redis_backend_rejects",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "Redis rate-limit rejection is old-host infrastructure."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_body_size_limit_skips_health",
+      "classification": "host-specific-delete",
+      "replacement": "FR-050",
+      "rationale": "Gateway health route body-size behavior is removed; DSH doctor covers diagnostics."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_timeout_500_propagates_handler_exception",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "MCP-004, DSH-G0-008",
+      "rationale": "Timeout/error classification moves from Gateway middleware to Broker transport and MCP canonical errors."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_rate_limit_uses_user_id_when_present",
+      "classification": "host-specific-delete",
+      "replacement": "MCP-005",
+      "rationale": "Per-user Gateway rate limiting is replaced by a fixed local actor contract, not a multi-user limiter."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_request_id_persists_across_concurrent_requests",
+      "classification": "host-specific-delete",
+      "replacement": "FR-053",
+      "rationale": "Concurrent HTTP request-id propagation is not part of the new DSH host; tool call correlation replaces it."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_extract_session_token_no_known_pattern_fallback",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "Cookie fallback parsing is deleted with BetterAuth."
+    },
+    {
+      "file": "tests/test_middleware.py",
+      "test_name": "test_auth_module_share_client_lifecycle",
+      "classification": "host-specific-delete",
+      "replacement": "FR-044",
+      "rationale": "BetterAuth client lifecycle is removed with the DeerFlow Gateway host."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_estimate_cost_known_model",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, FR-053",
+      "rationale": "Model cost observability remains diagnostic, but DeerFlow LangGraph middleware helpers are not retained."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_estimate_cost_unknown_model_returns_zero",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, FR-053",
+      "rationale": "Unknown model cost handling becomes DSH/Broker diagnostic behavior rather than LangGraph middleware code."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_estimate_cost_prefix_match",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, FR-053",
+      "rationale": "Provider/model reporting moves to gate reports and DSH/Broker observability."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_register_model_price_then_estimate",
+      "classification": "host-specific-delete",
+      "replacement": "FR-052",
+      "rationale": "Mutable DeerFlow price table registration is not part of the DSH migration scope."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_token_usage_after_model_emits_metrics",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, FR-053",
+      "rationale": "Token usage metrics remain a diagnostic concern but move out of DeerFlow LangGraph middleware."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_latency_basic_path",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, DSH-G0-008",
+      "rationale": "Latency tracking moves to tool duration/gate command evidence and timeout policy checks."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_latency_after_without_before_silent",
+      "classification": "host-specific-delete",
+      "replacement": "FR-052",
+      "rationale": "LangGraph middleware internal missing-before behavior is old-runtime-specific."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_recursion_soft_warn_injected",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "AGENT-007, DSH-G0-003",
+      "rationale": "Runaway agent behavior is controlled by DSH exact catalog, bounded tools, and write fingerprint guards instead of LangGraph soft injection."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_recursion_hard_strips_tool_calls",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "AGENT-007, DSH-G0-005",
+      "rationale": "Hard-stop behavior moves to Broker approval/fingerprint denial and DSH turn limits."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_recursion_invalid_limits_raise",
+      "classification": "host-specific-delete",
+      "replacement": "AGENT-007",
+      "rationale": "DeerFlow middleware environment variable validation is deleted with the old runtime."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_scrub_email",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SEC-001",
+      "rationale": "PII/secret redaction remains required but is validated across DSH dump/log/session/tool error outputs."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_scrub_phone_cn_and_us",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SEC-001",
+      "rationale": "PII redaction requirement remains at the DSH/Broker boundary."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_scrub_apikey",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SEC-001, DSH-G0-008",
+      "rationale": "API key redaction is covered by credential bridge and session/dump/log checks."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_scrub_ipv4",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SEC-001",
+      "rationale": "PII/IP redaction remains a diagnostic/session safety requirement."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_scrub_no_pii_unchanged",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SEC-001",
+      "rationale": "Safe text should remain unchanged by DSH/Broker redaction checks."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_middleware_scrubs_human_messages",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SEC-001",
+      "rationale": "Human/tool content redaction is validated through DSH session/tool visibility rather than LangGraph middleware mutation."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_middleware_skips_when_no_messages",
+      "classification": "host-specific-delete",
+      "replacement": "SEC-001",
+      "rationale": "LangGraph state-shape edge case is old-runtime-specific."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_middleware_skips_when_no_pii_found",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SEC-001",
+      "rationale": "No-redaction-needed behavior remains part of DSH/Broker redaction tests."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_pii_apikey_takes_priority_over_cc",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "SEC-001, DSH-G0-008",
+      "rationale": "Secret redaction priority is captured by credential bridge leak tests."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_recursion_guard_state_resets_after_hard",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "AGENT-007",
+      "rationale": "Loop state reset is replaced by DSH session/turn behavior and Broker fingerprint guards."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_token_usage_handles_missing_metadata",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, FR-053",
+      "rationale": "Missing model metadata should not break diagnostics, now covered by DSH/Broker report behavior."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_token_usage_handles_unknown_model",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, FR-053",
+      "rationale": "Unknown model metadata remains non-fatal in new diagnostics."
+    },
+    {
+      "file": "tests/test_langgraph_middleware.py",
+      "test_name": "test_latency_under_warn_threshold_silent",
+      "classification": "capability-replaced-by-broker-or-mcp",
+      "replacement": "FR-052, DSH-G0-008",
+      "rationale": "Latency threshold reporting moves to tool duration and timeout policy evidence."
+    }
+  ]
+}

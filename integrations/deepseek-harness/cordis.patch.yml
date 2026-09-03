@@ -1,0 +1,32 @@
+# Paper RAG G0 host profile overlay. Keep this file host-plane only; the
+# paper-research agent-plane composition lives under presets/paper-research.
+- id: session-telemetry-otel
+  disabled: true
+  config:
+    mode: DISABLED
+
+- id: credentials
+  config:
+    path: !!js process.env.PAPER_RAG_DSH_CREDENTIALS_PATH
+    watch: true
+
+- id: sandbox-policy
+  config:
+    mode: read-only
+    workspaceRoot: !!js process.env.PAPER_RAG_REPO_ROOT ?? process.cwd()
+
+- id: approval
+  config:
+    policy: ask
+
+- id: webserver
+  config:
+    host: 127.0.0.1
+    port: !!js Number(process.env.PAPER_RAG_DSH_PORT ?? '3080')
+
+- id: timeout-policy
+  name: '@deepseek-ai/dsh-tool-call-timeout-policy'
+
+- id: agent-presets
+  config:
+    default: paper-research

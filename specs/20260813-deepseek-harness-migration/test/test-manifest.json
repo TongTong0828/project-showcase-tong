@@ -1,0 +1,737 @@
+{
+  "feature": "20260813-deepseek-harness-migration",
+  "schema_version": 2,
+  "status": "approved-for-g0",
+  "owned_test_commands": [
+    {
+      "id": "python-lint",
+      "repository": ".",
+      "command": ".venv/bin/python -m ruff check --select E,F,W,I --ignore E501 src tests",
+      "suite": "ruff"
+    },
+    {
+      "id": "python-core",
+      "repository": ".",
+      "command": "PYTHONPATH=src:tests .venv/bin/python -m pytest -q --ignore=tests/eval",
+      "suite": "pytest-core"
+    },
+    {
+      "id": "python-smoke",
+      "repository": ".",
+      "command": "PYTHONPATH=src .venv/bin/python scripts/_run_smoke.py",
+      "suite": "python-smoke"
+    },
+    {
+      "id": "quality-baseline-freeze",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py freeze-baseline --spec specs/20260813-deepseek-harness-migration",
+      "suite": "quality-baseline",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "quality-baseline-validate",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-baseline --spec specs/20260813-deepseek-harness-migration",
+      "suite": "quality-baseline",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "eval-golden",
+      "repository": ".",
+      "command": "make eval-golden PY=.venv/bin/python",
+      "suite": "retrieval-golden",
+      "status": "pending-migration-env"
+    },
+    {
+      "id": "eval-golden-qa",
+      "repository": ".",
+      "command": "make eval-golden-qa PY=.venv/bin/python",
+      "suite": "qa-citation-golden",
+      "status": "pending-migration-env"
+    },
+    {
+      "id": "eval-citation-audit",
+      "repository": ".",
+      "command": "EVAL_CITATION_AUDIT_MD=data/index/migration-gates/artifacts/RAG_CITATION_AUDIT.md make eval-citation-audit PY=.venv/bin/python",
+      "suite": "citation-audit",
+      "status": "pending-migration-env"
+    },
+    {
+      "id": "eval-claims",
+      "repository": ".",
+      "command": "make eval-claims PY=.venv/bin/python",
+      "suite": "claim-gate",
+      "status": "pending-migration-env"
+    },
+    {
+      "id": "verify-p0",
+      "repository": ".",
+      "command": "make verify-p0 PY=.venv/bin/python",
+      "suite": "p0-gate",
+      "status": "pending-migration-env"
+    },
+    {
+      "id": "legacy-capability-matrix",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-legacy-matrix --spec specs/20260813-deepseek-harness-migration",
+      "suite": "legacy-capability-matrix",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-contract",
+      "repository": ".",
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_mcp_contract.py",
+      "suite": "pytest-mcp-contract",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-tools",
+      "repository": ".",
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_mcp_tools.py",
+      "suite": "pytest-mcp-tools",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-security",
+      "repository": ".",
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_mcp_security.py",
+      "suite": "pytest-mcp-security",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-artifacts",
+      "repository": ".",
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_mcp_artifacts.py",
+      "suite": "pytest-mcp-artifacts",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-operations",
+      "repository": ".",
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_mcp_operations.py",
+      "suite": "pytest-mcp-operations",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-parity",
+      "repository": ".",
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_dsh_parity.py",
+      "suite": "pytest-mcp-parity",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-install",
+      "repository": "integrations/deepseek-harness",
+      "command": "pnpm install --frozen-lockfile",
+      "suite": "pnpm-install",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "cutover-defaults",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-cutover-defaults",
+      "suite": "cutover-defaults",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-typecheck",
+      "repository": "integrations/deepseek-harness",
+      "command": "pnpm typecheck",
+      "suite": "typescript",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-test",
+      "repository": "integrations/deepseek-harness",
+      "command": "pnpm test",
+      "suite": "vitest",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-dump-config",
+      "repository": "integrations/deepseek-harness",
+      "command": "pnpm dsh:dump-config",
+      "suite": "dsh-composition",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-smoke",
+      "repository": "integrations/deepseek-harness",
+      "command": "pnpm smoke",
+      "suite": "dsh-smoke",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-g0-compat",
+      "repository": "integrations/deepseek-harness",
+      "command": "pnpm g0:compat --report ../../data/index/migration-gates/components/G0/dsh-g0-compat.json",
+      "suite": "dsh-real-compatibility",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "gate-report-g0",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-report --gate G0 --report data/index/migration-gates/G0.json",
+      "suite": "gate-report-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "gate-report-g1",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-report --gate G1 --report data/index/migration-gates/G1.json",
+      "suite": "gate-report-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "gate-report-g2",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-report --gate G2 --report data/index/migration-gates/G2.json",
+      "suite": "gate-report-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "gate-report-g3",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-report --gate G3 --report data/index/migration-gates/G3.json",
+      "suite": "gate-report-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "gate-report-g4",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-report --gate G4 --report data/index/migration-gates/G4.json",
+      "suite": "gate-report-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "gate-report-g5",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-report --gate G5 --report data/index/migration-gates/G5.json",
+      "suite": "gate-report-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "live-report-g1",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-live --gate G1",
+      "suite": "live-report-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "live-report-g2",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-live --gate G2",
+      "suite": "live-report-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "cut-validator",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-cutover --spec specs/20260813-deepseek-harness-migration",
+      "suite": "cutover-validator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "clean-checkout",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py validate-clean-checkout",
+      "suite": "clean-checkout",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "secret-scan",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/secret_scan.py",
+      "suite": "secret-scan"
+    },
+    {
+      "id": "diff-check",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py diff-check --base-env MIGRATION_GATE_BASE --head HEAD",
+      "suite": "git-hygiene"
+    },
+    {
+      "id": "run-gate-g0",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py run-gate --gate G0 --manifest specs/20260813-deepseek-harness-migration/test/test-manifest.json --report data/index/migration-gates/G0.json",
+      "suite": "gate-orchestrator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "run-gate-g1",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py run-gate --gate G1 --manifest specs/20260813-deepseek-harness-migration/test/test-manifest.json --report data/index/migration-gates/G1.json",
+      "suite": "gate-orchestrator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "run-gate-g2",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py run-gate --gate G2 --manifest specs/20260813-deepseek-harness-migration/test/test-manifest.json --report data/index/migration-gates/G2.json",
+      "suite": "gate-orchestrator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "run-gate-g3",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py run-gate --gate G3 --manifest specs/20260813-deepseek-harness-migration/test/test-manifest.json --report data/index/migration-gates/G3.json",
+      "suite": "gate-orchestrator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "run-gate-g4",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py run-gate --gate G4 --manifest specs/20260813-deepseek-harness-migration/test/test-manifest.json --report data/index/migration-gates/G4.json",
+      "suite": "gate-orchestrator",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "run-gate-g5",
+      "repository": ".",
+      "command": ".venv/bin/python scripts/migration_gate.py run-gate --gate G5 --manifest specs/20260813-deepseek-harness-migration/test/test-manifest.json --report data/index/migration-gates/G5.json",
+      "suite": "gate-orchestrator",
+      "status": "pending-implementation"
+    }
+  ],
+  "test_files": [
+    {
+      "id": "mcp-contract-tests",
+      "repository": ".",
+      "path": "tests/test_mcp_contract.py",
+      "command_id": "mcp-contract",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-tool-tests",
+      "repository": ".",
+      "path": "tests/test_mcp_tools.py",
+      "command_id": "mcp-tools",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-security-tests",
+      "repository": ".",
+      "path": "tests/test_mcp_security.py",
+      "command_id": "mcp-security",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-artifact-tests",
+      "repository": ".",
+      "path": "tests/test_mcp_artifacts.py",
+      "command_id": "mcp-artifacts",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-operation-tests",
+      "repository": ".",
+      "path": "tests/test_mcp_operations.py",
+      "command_id": "mcp-operations",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "mcp-parity-tests",
+      "repository": ".",
+      "path": "tests/test_dsh_parity.py",
+      "command_id": "mcp-parity",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-composition-tests",
+      "repository": "integrations/deepseek-harness",
+      "path": "tests/composition.spec.ts",
+      "command_id": "dsh-test",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-broker-tests",
+      "repository": "integrations/deepseek-harness",
+      "path": "tests/broker.spec.ts",
+      "command_id": "dsh-test",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-approval-tests",
+      "repository": "integrations/deepseek-harness",
+      "path": "tests/approval.spec.ts",
+      "command_id": "dsh-test",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-credential-tests",
+      "repository": "integrations/deepseek-harness",
+      "path": "tests/credentials.spec.ts",
+      "command_id": "dsh-test",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-session-tests",
+      "repository": "integrations/deepseek-harness",
+      "path": "tests/session-context.spec.ts",
+      "command_id": "dsh-test",
+      "status": "pending-implementation"
+    },
+    {
+      "id": "dsh-behavior-tests",
+      "repository": "integrations/deepseek-harness",
+      "path": "tests/behavior.spec.ts",
+      "command_id": "dsh-test",
+      "status": "pending-implementation"
+    }
+  ],
+  "required_cases": {
+    "G0": [
+      "DSH-G0-001",
+      "DSH-G0-002",
+      "DSH-G0-003",
+      "DSH-G0-004",
+      "DSH-G0-005",
+      "DSH-G0-006",
+      "DSH-G0-007",
+      "DSH-G0-008",
+      "DSH-G0-009"
+    ],
+    "G1": [
+      "MCP-001",
+      "MCP-002",
+      "MCP-003",
+      "MCP-004",
+      "MCP-005",
+      "MCP-006",
+      "MCP-007",
+      "MCP-RO-001",
+      "MCP-RO-002",
+      "MCP-RO-003",
+      "MCP-RO-004",
+      "MCP-RO-005",
+      "MCP-RO-006",
+      "MCP-RO-007",
+      "MCP-RO-008",
+      "AGENT-001",
+      "AGENT-002",
+      "AGENT-003",
+      "AGENT-004",
+      "AGENT-005",
+      "AGENT-006",
+      "AGENT-007",
+      "SEC-001",
+      "SEC-002",
+      "SEC-003",
+      "SEC-004",
+      "SEC-005"
+    ],
+    "G2": [
+      "MCP-008",
+      "WRITE-001",
+      "WRITE-002",
+      "WRITE-003",
+      "WRITE-004",
+      "WRITE-005",
+      "WRITE-006",
+      "WRITE-007",
+      "ART-001",
+      "ART-002",
+      "ART-003",
+      "ART-004",
+      "ART-005",
+      "ART-006",
+      "SESSION-001",
+      "SESSION-002",
+      "SESSION-003",
+      "SESSION-004",
+      "SESSION-005",
+      "SEC-001",
+      "SEC-002",
+      "SEC-003",
+      "SEC-004",
+      "SEC-005",
+      "SESSION-006"
+    ],
+    "G3": [
+      "PRO-001",
+      "PRO-002",
+      "PRO-003",
+      "PRO-004",
+      "PRO-005"
+    ],
+    "G5": [
+      "CUT-001",
+      "CUT-002",
+      "CUT-003",
+      "CUT-004",
+      "CUT-005",
+      "CUT-006",
+      "SEC-001",
+      "SEC-002",
+      "SEC-003",
+      "SEC-004",
+      "SEC-005"
+    ],
+    "G4": [
+      "CUT-002",
+      "CUT-003",
+      "CUT-005"
+    ]
+  },
+  "live_cases": [
+    {
+      "id": "LIVE-001",
+      "gate": "G1",
+      "runner": ".venv/bin/python scripts/migration_gate.py run-live --case LIVE-001",
+      "report": "data/index/migration-gates/live/LIVE-001.json",
+      "max_age_hours": 24,
+      "requires_authorization": true,
+      "side_effects": [
+        "real LLM calls"
+      ]
+    },
+    {
+      "id": "LIVE-002",
+      "gate": "G2",
+      "runner": ".venv/bin/python scripts/migration_gate.py run-live --case LIVE-002 --config-env PAPER_RAG_CONFIG",
+      "report": "data/index/migration-gates/live/LIVE-002.json",
+      "max_age_hours": 24,
+      "requires_authorization": true,
+      "side_effects": [
+        "external paper search",
+        "isolated paper download",
+        "isolated SQLite writes",
+        "isolated Qdrant writes"
+      ]
+    },
+    {
+      "id": "LIVE-003",
+      "gate": "G2",
+      "runner": ".venv/bin/python scripts/migration_gate.py run-live --case LIVE-003 --config-env PAPER_RAG_CONFIG",
+      "report": "data/index/migration-gates/live/LIVE-003.json",
+      "max_age_hours": 24,
+      "requires_authorization": true,
+      "side_effects": [
+        "real LLM calls",
+        "isolated artifact writes"
+      ]
+    },
+    {
+      "id": "LIVE-004",
+      "gate": "G2",
+      "runner": ".venv/bin/python scripts/migration_gate.py run-live --case LIVE-004 --config-env PAPER_RAG_CONFIG",
+      "report": "data/index/migration-gates/live/LIVE-004.json",
+      "max_age_hours": 24,
+      "requires_authorization": true,
+      "side_effects": [
+        "real LLM calls",
+        "versioned durable DSH session"
+      ]
+    },
+    {
+      "id": "LIVE-005",
+      "gate": "G2",
+      "runner": ".venv/bin/python scripts/migration_gate.py run-live --case LIVE-005 --config-env PAPER_RAG_CONFIG",
+      "report": "data/index/migration-gates/live/LIVE-005.json",
+      "max_age_hours": 24,
+      "requires_authorization": true,
+      "side_effects": [
+        "real LLM calls",
+        "external paper search",
+        "isolated paper download",
+        "isolated SQLite writes",
+        "isolated Qdrant writes",
+        "isolated artifact writes",
+        "versioned durable DSH session"
+      ]
+    }
+  ],
+  "cleanup_plan": "test/cleanup-plan.md",
+  "gate_components": {
+    "G0": [
+      "eval-golden",
+      "eval-golden-qa",
+      "eval-citation-audit",
+      "eval-claims",
+      "verify-p0",
+      "quality-baseline-freeze",
+      "legacy-capability-matrix",
+      "dsh-install",
+      "dsh-typecheck",
+      "dsh-test",
+      "dsh-dump-config",
+      "dsh-smoke",
+      "dsh-g0-compat",
+      "secret-scan",
+      "diff-check"
+    ],
+    "G1": [
+      "quality-baseline-validate",
+      "python-lint",
+      "python-core",
+      "python-smoke",
+      "eval-golden",
+      "eval-golden-qa",
+      "eval-citation-audit",
+      "eval-claims",
+      "verify-p0",
+      "mcp-contract",
+      "mcp-tools",
+      "mcp-security",
+      "mcp-operations",
+      "mcp-parity",
+      "dsh-typecheck",
+      "dsh-test",
+      "dsh-dump-config",
+      "dsh-smoke",
+      "live-report-g1",
+      "secret-scan",
+      "diff-check"
+    ],
+    "G2": [
+      "quality-baseline-validate",
+      "python-lint",
+      "python-core",
+      "python-smoke",
+      "eval-golden",
+      "eval-golden-qa",
+      "eval-citation-audit",
+      "eval-claims",
+      "verify-p0",
+      "mcp-contract",
+      "mcp-tools",
+      "mcp-security",
+      "mcp-artifacts",
+      "mcp-operations",
+      "mcp-parity",
+      "dsh-typecheck",
+      "dsh-test",
+      "dsh-dump-config",
+      "dsh-smoke",
+      "live-report-g2",
+      "secret-scan",
+      "diff-check"
+    ],
+    "G3": [
+      "quality-baseline-validate",
+      "python-lint",
+      "python-core",
+      "python-smoke",
+      "eval-golden",
+      "eval-golden-qa",
+      "eval-citation-audit",
+      "eval-claims",
+      "verify-p0",
+      "mcp-tools",
+      "mcp-security",
+      "mcp-operations",
+      "dsh-test",
+      "dsh-smoke",
+      "secret-scan",
+      "diff-check"
+    ],
+    "G4": [
+      "quality-baseline-validate",
+      "legacy-capability-matrix",
+      "python-lint",
+      "python-core",
+      "python-smoke",
+      "eval-golden",
+      "eval-golden-qa",
+      "eval-citation-audit",
+      "eval-claims",
+      "verify-p0",
+      "mcp-contract",
+      "mcp-tools",
+      "mcp-security",
+      "mcp-artifacts",
+      "mcp-operations",
+      "mcp-parity",
+      "cutover-defaults",
+      "dsh-install",
+      "dsh-typecheck",
+      "dsh-test",
+      "dsh-dump-config",
+      "dsh-smoke",
+      "clean-checkout",
+      "secret-scan",
+      "diff-check"
+    ],
+    "G5": [
+      "quality-baseline-validate",
+      "legacy-capability-matrix",
+      "python-lint",
+      "python-core",
+      "python-smoke",
+      "eval-golden",
+      "eval-golden-qa",
+      "eval-citation-audit",
+      "eval-claims",
+      "verify-p0",
+      "mcp-contract",
+      "mcp-tools",
+      "mcp-security",
+      "mcp-artifacts",
+      "mcp-operations",
+      "mcp-parity",
+      "dsh-install",
+      "dsh-typecheck",
+      "dsh-test",
+      "dsh-dump-config",
+      "dsh-smoke",
+      "cut-validator",
+      "clean-checkout",
+      "secret-scan",
+      "diff-check"
+    ]
+  },
+  "gate_commands": {
+    "G0": [
+      "run-gate-g0",
+      "gate-report-g0"
+    ],
+    "G1": [
+      "run-gate-g1",
+      "gate-report-g1"
+    ],
+    "G2": [
+      "run-gate-g2",
+      "gate-report-g2"
+    ],
+    "G3": [
+      "run-gate-g3",
+      "gate-report-g3"
+    ],
+    "G4": [
+      "run-gate-g4",
+      "gate-report-g4"
+    ],
+    "G5": [
+      "run-gate-g5",
+      "gate-report-g5"
+    ]
+  },
+  "inherits_required_cases": {
+    "G0": [],
+    "G1": [
+      "G0"
+    ],
+    "G2": [
+      "G0",
+      "G1"
+    ],
+    "G3": [
+      "G0",
+      "G1",
+      "G2"
+    ],
+    "G4": [
+      "G0",
+      "G1",
+      "G2",
+      "G3"
+    ],
+    "G5": [
+      "G0",
+      "G1",
+      "G2",
+      "G3",
+      "G4"
+    ]
+  }
+}

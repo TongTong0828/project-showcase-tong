@@ -1,0 +1,58 @@
+# LIVE-001 headless profile overlay. This is intentionally separate from the
+# web host overlay because the headless profile has no webserver row.
+
+- id: agent-default-model
+  config:
+    provider: deepseek-official
+    model: deepseek-v4-flash
+
+- id: session-telemetry-otel
+  disabled: true
+  config:
+    mode: DISABLED
+
+- id: session-persistence-jsonl
+  config:
+    root: !!js dshHomePath('sessions')
+    compression: none
+
+- id: credentials
+  config:
+    path: !!js process.env.PAPER_RAG_DSH_CREDENTIALS_PATH
+    watch: false
+
+- id: sandbox-policy
+  config:
+    mode: read-only
+    workspaceRoot: !!js process.env.PAPER_RAG_REPO_ROOT ?? process.cwd()
+
+- id: approval
+  config:
+    policy: ask
+
+- id: llm-deepseek
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+    baseURL: !!js process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
+    models:
+      - id: deepseek-v4-flash
+        name: DeepSeek V4 Flash
+
+- id: headless-runner
+  disabled: true
+
+- insert:
+    - id: paper-rag-headless-runner
+      name: ./src/paper-rag-headless-runner.mjs
+      inject: [headlessStartup]
+      config:
+        task: !!js ctx.headlessStartup.task
+        preset: paper-research
+        includeWorkflow: !!js process.env.PAPER_RAG_DSH_HEADLESS_WORKFLOW === '1' || process.env.PAPER_RAG_DSH_HEADLESS_REPORT_JSON === '1'
+        reportJson: !!js process.env.PAPER_RAG_DSH_HEADLESS_REPORT_JSON === '1'
+        scriptedWorkflow: !!js process.env.PAPER_RAG_DSH_HEADLESS_SCRIPTED_WORKFLOW === '1'
+
+    - id: agent-presets
+      name: '@deepseek-ai/dsh-agent-presets'
+      config:
+        default: paper-research

@@ -1,0 +1,3 @@
+name: Paper Research
+description: Paper RAG research assistant with a constrained local tool catalog.
+order: 10
