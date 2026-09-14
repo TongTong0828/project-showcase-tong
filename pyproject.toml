@@ -70,7 +70,7 @@ proactive = [
 ]
 # DeepSeek Harness private MCP adapter. Core imports must not require this extra.
 harness = [
-    "mcp==1.29.0",
+    "mcp==2.2.0",
 ]
 # Optional local vision fallback for figure/table summaries.
 vision-local = [
